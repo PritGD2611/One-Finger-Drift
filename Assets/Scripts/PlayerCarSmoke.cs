@@ -80,11 +80,7 @@ public class PlayerCarSmoke : MonoBehaviour
         float speed = rb != null ? rb.linearVelocity.magnitude : 0f;
         bool isMoving = speed >= minSpeedForSmoke;
 
-        // Check if in drift mode
-        bool isDriftMode = carController.IsDriftMode;
-
-        // Smoke when moving AND not in drift mode
-        bool shouldSmoke = isMoving && !isDriftMode;
+        bool shouldSmoke = isMoving;
 
         if (shouldSmoke && !isSmoking)
         {
