@@ -7,11 +7,13 @@ TagManager:
   - Track
   - Obstascle
   - Obstacle
+  - FxTemporaire
+  - FinishLine
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - groundLayer
+  - Ground
   - Water
   - UI
   - 

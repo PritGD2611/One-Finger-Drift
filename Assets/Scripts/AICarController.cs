@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 
 public class AICarController : MonoBehaviour
@@ -400,6 +401,22 @@ public class AICarController : MonoBehaviour
         rb.angularVelocity = Vector3.zero;
         rb.isKinematic = true;
         Debug.Log("AI Car Finished!");
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("FinishLine"))
+        {
+            SceneManager.LoadScene("GameOver");
+        }
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.collider.CompareTag("FinishLine"))
+        {
+            SceneManager.LoadScene("GameOver");
+        }
     }
 
     // Reset for new race

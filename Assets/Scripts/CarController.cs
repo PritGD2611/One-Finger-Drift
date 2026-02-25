@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class CarController : MonoBehaviour
 {
@@ -15,6 +16,10 @@ public class CarController : MonoBehaviour
     public float driftGrip = 0.7f;       // drift grip (low = more slide)
     public float driftSlideForce = 3f;   // sideways slide force during drift
     public float gravityMultiplier = 8f; // extra gravity for faster falling
+
+    [Header("Ground Check")]
+    public LayerMask groundLayer;
+    public float groundCheckDistance = 1.5f;
 
     [Header("Drift Mode")]
     public float driftSpeedMultiplierMax = 1.5f;   // max speed multiplier (1.5 = 50% faster)
@@ -40,6 +45,7 @@ public class CarController : MonoBehaviour
     // Current hold state
     bool isHolding;
     float holdDirection; // -1 = left, 1 = right, 0 = not holding
+    bool isGrounded = true;
 
     public bool IsDriftMode => driftMode;
     public float CurrentSpeed => baseSpeed * currentSpeedMultiplier;
@@ -58,6 +64,7 @@ public class CarController : MonoBehaviour
 
     void FixedUpdate()
     {
+        CheckGround();
         ReadInput();
         UpdateDriftBoost();
         Turn();
@@ -256,6 +263,40 @@ public class CarController : MonoBehaviour
         {
             Vector3 extraGravity = Physics.gravity * (gravityMultiplier - 1f);
             rb.AddForce(extraGravity, ForceMode.Acceleration);
+        }
+    }
+
+    void CheckGround()
+    {
+        bool wasGrounded = isGrounded;
+        isGrounded = Physics.Raycast(transform.position, Vector3.down, groundCheckDistance, groundLayer);
+
+        if (isGrounded && !wasGrounded)
+        {
+            // Just landed - freeze Y position
+            rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezePositionY;
+        }
+        else if (!isGrounded && wasGrounded)
+        {
+            // Just left the ground - unfreeze Y so car falls
+            rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+            rb.useGravity = true;
+        }
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("FinishLine"))
+        {
+            SceneManager.LoadScene("Levels");
+        }
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.collider.CompareTag("FinishLine"))
+        {
+            SceneManager.LoadScene("Levels");
         }
     }
 }
