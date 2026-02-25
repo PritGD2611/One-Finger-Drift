@@ -48,8 +48,8 @@ public class CarController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
 
-        // Freeze rotation on X and Z to prevent flipping
-        rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+        // Freeze rotation on X and Z to prevent flipping, freeze Y position to stay on ground
+        rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezePositionY;
 
         // Prevent clipping through ground
         rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
