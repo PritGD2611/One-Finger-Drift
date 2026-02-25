@@ -125,18 +125,34 @@ public class AICarController : MonoBehaviour
 
         for (int i = 0; i < waypoints.Count; i++)
         {
-            float dist = Vector3.Distance(transform.position, waypoints[i].position);
-            if (dist < minDist)
+            Vector3 toWP = waypoints[i].position - transform.position;
+            toWP.y = 0;
+            float dist = toWP.magnitude;
+
+            // Prefer waypoints that are ahead of the car
+            float dot = Vector3.Dot(transform.forward, toWP.normalized);
+
+            // Only consider waypoints in front of the car (dot > 0)
+            // or fall back to closest if none are ahead
+            if (dot > 0 && dist < minDist)
             {
                 minDist = dist;
                 closest = i;
             }
         }
 
-        // If we're already at/near the closest waypoint, target the next one
-        if (minDist <= waypointReachDistance && closest < waypoints.Count - 1)
+        // If no waypoint is ahead, just use the closest one
+        if (minDist == float.MaxValue)
         {
-            closest++;
+            for (int i = 0; i < waypoints.Count; i++)
+            {
+                float dist = HorizontalDistance(transform.position, waypoints[i].position);
+                if (dist < minDist)
+                {
+                    minDist = dist;
+                    closest = i;
+                }
+            }
         }
 
         return closest;
@@ -324,11 +340,10 @@ public class AICarController : MonoBehaviour
 
     void ApplyMovement(float turnInput)
     {
-        // Calculate target speed
-        float targetSpeed = baseSpeed + currentDriftBoost;
-        targetSpeed = Mathf.Min(targetSpeed, maxSpeed);
+        // Constant speed - matches player car behavior
+        float targetSpeed = baseSpeed;
 
-        // Slow down for turns
+        // Only slow down for upcoming turns
         float upcomingAngle = GetUpcomingTurnAngle();
         if (upcomingAngle > turnSlowdownAngle)
         {
@@ -336,12 +351,8 @@ public class AICarController : MonoBehaviour
             targetSpeed *= Mathf.Lerp(1f, turnSlowdownMultiplier, slowdown);
         }
 
-        // Smooth acceleration
-        float currentSpeed = rb.linearVelocity.magnitude;
-        float smoothSpeed = Mathf.MoveTowards(currentSpeed, targetSpeed, Time.fixedDeltaTime * 30f);
-
-        // Apply velocity
-        Vector3 forwardVelocity = transform.forward * smoothSpeed;
+        // Apply velocity directly - no gradual acceleration
+        Vector3 forwardVelocity = transform.forward * targetSpeed;
 
         // Apply grip (allows drifting)
         float currentGrip = drifting ? driftGrip : grip;
